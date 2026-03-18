@@ -4,7 +4,7 @@
 
 This project extends LibreChat with a comprehensive Contacts Workspace that allows users to manage contacts and enables the AI assistant to answer questions about them during normal chat conversations. The system supports storing contacts with both structured fields and arbitrary custom attributes, making it flexible enough to handle diverse contact information.
 
-**Key Achievement**: The integration uses **structured tool calling** to enable the AI assistant to intelligently retrieve only relevant contacts when answering user queries, ensuring efficient token usage and accurate responses.
+**Key Achievement**: The integration uses structured tool calling to enable the AI assistant to intelligently retrieve only relevant contacts when answering user queries, ensuring efficient token usage and accurate responses.
 
 ---
 
@@ -31,7 +31,7 @@ This project extends LibreChat with a comprehensive Contacts Workspace that allo
 
 ### What is Structured Tool Calling?
 
-Instead of sending all contacts to the LLM with every message, this implementation uses **LangChain's structured tool calling** pattern. The LLM can autonomously decide when to search contacts and what parameters to use.
+Instead of sending all contacts to the LLM with every message, this implementation uses LangChain's structured tool calling pattern. The LLM can autonomously decide when to search contacts and what parameters to use.
 
 ### How It Works
 
@@ -286,200 +286,6 @@ Upload CSV file
 
 ---
 
-## Design Decisions
-
-### Why Structured Tool Calling?
-
-**Alternatives Considered**:
-1. **Prompt Context Injection**: Send all contacts with every message
-   - ❌ Impossible at scale (1M contacts = millions of tokens)
-   - ❌ Expensive and slow
-   
-2. **Retrieval Before Prompt**: Pre-search contacts, add to context
-   - ❌ Requires predicting what user will ask
-   - ❌ May retrieve irrelevant contacts
-   
-3. **Structured Tool Calling**: LLM decides when and how to search
-   - ✅ Only retrieves relevant contacts
-   - ✅ LLM autonomously determines search parameters
-   - ✅ Scales to millions of contacts
-   - ✅ Minimal token usage
-
-### Why Streaming CSV Import?
-
-**Problem**: Loading 1M row CSV into memory would crash Node.js
-
-**Solution**: Stream-based processing with batching
-- Read file incrementally
-- Process in 5,000 row batches
-- Constant memory footprint
-- Handles files of any size
-
-### Why Metadata Field?
-
-**Problem**: CSV files have unpredictable columns
-
-**Solution**: Flexible metadata object
-- Stores any arbitrary attributes
-- No schema changes needed for new columns
-- LLM can still search metadata fields
-- Future-proof design
-
----
-
-## Scalability & Performance
-
-### Current System Supports 1,000,000 Contacts
-
-The system is already designed to handle 1M+ contacts efficiently:
-
-#### 1. Database Indexes
-- Multiple indexes on searchable fields (name, company, email, phone)
-- Compound index for common query patterns
-- MongoDB efficiently handles millions of documents with proper indexes
-
-#### 2. Pagination
-- Server enforces max 100 results per request
-- Client uses cursor-based pagination
-- Only loads visible page into memory
-
-#### 3. Streaming CSV Import
-- Constant memory usage regardless of file size
-- Batch processing (5,000 rows at a time)
-- Backpressure handling prevents memory overflow
-- Successfully tested with 1M row CSV files
-
-#### 4. Intelligent LLM Retrieval
-- Max 20 contacts returned per tool call
-- Regex-based filtering at database level
-- Only relevant contacts sent to LLM
-- Token usage independent of total contact count
-
-### If System Needed Further Optimization for 10M+ Contacts
-
-**Database Layer**:
-- Add full-text search indexes for better performance
-- Implement database sharding by user ID
-- Use read replicas for query distribution
-- Add caching layer (Redis) for frequent queries
-
-**Search Layer**:
-- Integrate Elasticsearch or MeiliSearch for advanced full-text search
-- Implement fuzzy matching and typo tolerance
-- Add search result ranking/scoring
-- Cache popular search queries
-
-**Import Layer**:
-- Move CSV processing to background job queue (Bull/BullMQ)
-- Implement progress tracking and resumable uploads
-- Add parallel processing for multiple files
-- Use worker threads for CPU-intensive parsing
-
-**LLM Integration**:
-- Implement semantic search with embeddings
-- Add vector database (Pinecone, Weaviate) for similarity search
-- Use hybrid search (keyword + semantic)
-- Cache common query results
-
----
-
-## How System Ensures Relevant Contact Retrieval
-
-### 1. Structured Query Parameters
-
-LLM provides specific search criteria:
-```javascript
-{
-  companyName: "Acme Corp",    // Filters by company
-  personName: "John",          // Filters by name
-  role: "CTO",                 // Filters by role
-  industry: "AI"               // Filters by metadata.Industry
-}
-```
-
-### 2. MongoDB Regex Filtering
-
-All parameters use case-insensitive regex:
-```javascript
-{
-  company: { $regex: "Acme Corp", $options: "i" },
-  name: { $regex: "John", $options: "i" },
-  role: { $regex: "CTO", $options: "i" }
-}
-```
-
-### 3. Combined Conditions
-
-Multiple parameters are AND-ed together:
-```javascript
-{
-  createdBy: userId,
-  $and: [
-    { company: /Acme Corp/i },
-    { role: /CTO/i }
-  ]
-}
-```
-
-### 4. Result Limiting
-
-Hard limit of 20 contacts per query:
-```javascript
-Contact.find(filter).limit(20).lean()
-```
-
-### 5. User Scoping
-
-All queries automatically filtered by user:
-```javascript
-{ createdBy: req.user.id }
-```
-
----
-
-## Limitations
-
-### Current Implementation
-
-1. **Search Capabilities**
-   - Basic regex search only (no fuzzy matching)
-   - No typo tolerance
-   - Limited to 4 search parameters (name, company, role, industry)
-
-2. **Metadata Search**
-   - Only "Industry" metadata field is searchable via tool
-   - Other metadata fields require manual UI search
-   - No automatic metadata field discovery
-
-3. **LLM Context**
-   - Max 20 contacts per tool call
-   - If more than 20 matches, user must refine query
-
-4. **CSV Import**
-   - No validation of email/phone formats
-   - No duplicate detection
-   - No import preview before processing
-
-5. **Performance**
-   - No caching of frequent queries
-   - Regex queries can be slow on very large datasets without proper indexes
-
-6. **UI/UX**
-   - No contact grouping or tagging
-
-### Future Enhancements
-
-- Add full-text search with Elasticsearch
-- Implement semantic search with embeddings
-- Add contact deduplication
-- Support contact import from other sources (Google Contacts, Outlook, etc.)
-- Add contact activity tracking
-- Implement contact sharing between users
-- Add advanced filtering (date ranges, multiple values, etc.)
-- Support contact export to CSV/VCF
-
----
-
 ## Setup Instructions
 
 ### Prerequisites
@@ -539,6 +345,405 @@ Download test CSV files:
 - **LLM Integration**: LangChain (Tool abstraction)
 - **CSV Processing**: csv-parser (streaming)
 - **File Upload**: Multer (multipart/form-data)
+
+---
+
+## Design Questions
+
+### 1. If the system needed to support 1,000,000 contacts, how would you redesign it?
+
+The current system is already designed to handle 1,000,000+ contacts efficiently. Here's how:
+
+#### Current Architecture Supports 1M Contacts
+
+**Database Layer**:
+- MongoDB with proper indexing (name, company, email, phone, compound indexes)
+- Efficient query patterns with user scoping (`createdBy: userId`)
+- Pagination limits (max 100 results per request)
+- Lean queries to reduce memory overhead
+
+**CSV Import System**:
+- Streaming architecture with constant memory usage (~50-100MB)
+- Batch processing (5,000 rows per batch)
+- Backpressure handling (pause/resume)
+- Successfully tested with 1M row CSV files (8-12 minutes import time)
+
+**LLM Integration**:
+- Structured tool calling retrieves max 20 contacts per query
+- Token usage independent of total contact count
+- Database-level filtering before sending to LLM
+- No need to load entire dataset into context
+
+**Frontend**:
+- Paginated UI (25 contacts per page)
+- Debounced search (300ms)
+- React Query caching for performance
+- Only loads visible data
+
+#### If Scaling Beyond 1M to 10M+ Contacts
+
+**Database Optimizations**:
+- Implement database sharding by `createdBy` (user ID) for horizontal scaling
+- Add read replicas for query distribution
+- Implement Redis caching layer for frequent queries
+- Add full-text search indexes for better regex performance
+- Consider time-based partitioning for historical data
+
+**Search Enhancements**:
+- Integrate Elasticsearch or MeiliSearch for advanced full-text search
+- Implement fuzzy matching and typo tolerance
+- Add search result ranking/scoring algorithms
+- Cache popular search queries with TTL
+- Implement search query optimization and rewriting
+
+**Import System**:
+- Move CSV processing to background job queue (Bull/BullMQ with Redis)
+- Implement progress tracking with WebSocket updates
+- Add resumable uploads for large files
+- Use worker threads for parallel CSV parsing
+- Implement chunked uploads for files >100MB
+
+**LLM Integration**:
+- Implement semantic search with embeddings (OpenAI, Cohere)
+- Add vector database (Pinecone, Weaviate, Qdrant) for similarity search
+- Use hybrid search (keyword + semantic) for better relevance
+- Implement query result caching with Redis
+- Add intelligent query expansion based on user intent
+
+**API Layer**:
+- Implement rate limiting per user
+- Add request throttling for expensive operations
+- Use connection pooling for database
+- Implement API response caching
+- Add CDN for static assets
+
+**Monitoring & Observability**:
+- Add query performance monitoring
+- Implement slow query logging
+- Add metrics for import operations
+- Set up alerts for performance degradation
+- Track LLM tool call patterns
+
+---
+
+### 2. How would you ensure the assistant retrieves the most relevant contacts for a query?
+
+The system uses multiple strategies to ensure high-quality, relevant contact retrieval:
+
+#### Current Implementation
+
+**1. Structured Tool Calling**
+- LLM receives a well-defined JSON schema with 4 parameters:
+  - `companyName`: Search by company
+  - `personName`: Search by person name
+  - `role`: Search by job title
+  - `industry`: Search by metadata.Industry field
+- LLM autonomously decides which parameters to use based on user query
+- Multiple parameters are AND-ed together for precise filtering
+
+**2. Database-Level Filtering**
+```javascript
+// Example: "Who is the CTO at Acme Corp?"
+{
+  createdBy: userId,
+  $and: [
+    { company: { $regex: "Acme Corp", $options: "i" } },
+    { role: { $regex: "CTO", $options: "i" } }
+  ]
+}
+```
+- Case-insensitive regex matching
+- Partial string matching (e.g., "Acme" matches "Acme Corp")
+- Combined conditions ensure precision
+
+**3. Result Limiting**
+- Hard limit of 20 contacts per tool call
+- Prevents token overflow
+- Forces more specific queries if too many matches
+- Encourages iterative refinement
+
+**4. User Scoping**
+- All queries automatically filtered by `createdBy: userId`
+- Ensures privacy and reduces search space
+- Improves query performance
+
+**5. Indexed Fields**
+- Database indexes on searchable fields (name, company, email, phone)
+- Compound index on (company, name) for common patterns
+- Fast query execution even with millions of records
+
+#### Future Enhancements for Better Relevance
+
+**1. Semantic Search with Embeddings**
+```javascript
+// Generate embeddings for contact profiles
+const embedding = await openai.embeddings.create({
+  input: `${contact.name} ${contact.company} ${contact.role} ${contact.notes}`,
+  model: "text-embedding-3-small"
+});
+
+// Store in vector database
+await vectorDB.upsert({
+  id: contact.id,
+  values: embedding,
+  metadata: { name, company, role }
+});
+
+// Query with natural language
+const queryEmbedding = await openai.embeddings.create({
+  input: userQuery,
+  model: "text-embedding-3-small"
+});
+
+const results = await vectorDB.query({
+  vector: queryEmbedding,
+  topK: 20
+});
+```
+
+**2. Hybrid Search (Keyword + Semantic)**
+- Combine traditional keyword search with semantic similarity
+- Weight results based on both exact matches and semantic relevance
+- Use reciprocal rank fusion to merge results
+
+**3. Query Understanding & Expansion**
+```javascript
+// Expand query with synonyms and related terms
+"CTO" → ["CTO", "Chief Technology Officer", "VP Engineering", "Head of Engineering"]
+"AI company" → ["AI", "Artificial Intelligence", "Machine Learning", "ML"]
+```
+
+**4. Relevance Scoring**
+```javascript
+// Score contacts based on multiple factors
+const score = 
+  (exactNameMatch ? 10 : partialNameMatch ? 5 : 0) +
+  (exactCompanyMatch ? 8 : partialCompanyMatch ? 4 : 0) +
+  (exactRoleMatch ? 6 : partialRoleMatch ? 3 : 0) +
+  (recentlyUpdated ? 2 : 0) +
+  (hasNotes ? 1 : 0);
+```
+
+**5. Contextual Ranking**
+- Track which contacts user interacts with most
+- Boost frequently accessed contacts in search results
+- Consider conversation context for disambiguation
+- Learn from user feedback (implicit and explicit)
+
+**6. Multi-Field Search**
+```javascript
+// Search across all fields including metadata
+{
+  $or: [
+    { name: /query/i },
+    { company: /query/i },
+    { role: /query/i },
+    { email: /query/i },
+    { notes: /query/i },
+    { 'metadata.Industry': /query/i },
+    { 'metadata.Location': /query/i }
+  ]
+}
+```
+
+**7. Intelligent Query Parsing**
+- Extract entities from natural language queries
+- Identify query intent (search by company, role, industry, etc.)
+- Handle complex queries: "CTOs at AI companies in San Francisco"
+- Support boolean operators: "CTO AND (Acme OR TechCorp)"
+
+**8. Result Diversification**
+- Avoid returning 20 contacts from same company
+- Ensure variety in results when query is broad
+- Balance precision and recall
+
+**9. Feedback Loop**
+```javascript
+// Track which results user finds useful
+toolCall.onResult((selectedContacts) => {
+  // Boost relevance scores for selected contacts
+  // Adjust ranking algorithm based on user behavior
+});
+```
+
+**10. Caching & Performance**
+- Cache frequent query patterns
+- Pre-compute embeddings for all contacts
+- Use approximate nearest neighbor search for speed
+- Implement query result caching with TTL
+
+---
+
+### 3. What are the limitations of your current implementation?
+
+#### Search & Retrieval Limitations
+
+**1. Basic Regex Search Only**
+- No fuzzy matching (typos won't match)
+- No phonetic matching (similar-sounding names)
+- No synonym support
+- Case-insensitive but requires partial string match
+- Example: "Jon" won't match "John", "Acme" won't match "ACME Corporation"
+
+**2. Limited Search Parameters**
+- Only 4 parameters: companyName, personName, role, industry
+- Other metadata fields not searchable via LLM tool
+- No support for email, phone, or notes search via tool
+- No date-based filtering (e.g., "contacts added last month")
+
+**3. Metadata Search Constraints**
+- Only "Industry" metadata field exposed to LLM
+- Other metadata fields (Location, FundingStage, etc.) not searchable
+- No automatic metadata field discovery
+- No dynamic schema adaptation
+
+**4. Result Limiting**
+- Hard limit of 20 contacts per tool call
+- If query matches 100 contacts, only first 20 returned
+- No pagination support in tool calls
+- User must refine query if too many matches
+- No indication of how many total matches exist
+
+**5. No Semantic Understanding**
+- Cannot understand intent: "people I should talk to about AI" requires explicit company/role
+- No similarity search: "contacts similar to John Doe"
+- No relationship inference: "who knows someone at Acme Corp"
+
+#### CSV Import Limitations
+
+**1. No Data Validation**
+- Email format not validated
+- Phone number format not validated
+- No duplicate detection (same email/phone)
+- Invalid data silently stored
+
+**2. No Import Preview**
+- Cannot preview data before import
+- No column mapping UI
+- No data transformation options
+- All-or-nothing import (no selective import)
+
+**3. Error Handling**
+- Partial failures not reported in detail
+- No row-level error messages
+- Cannot identify which rows failed
+- No import rollback on errors
+
+**4. No Progress Tracking**
+- Basic progress bar only
+- No ETA calculation
+- Cannot pause/resume large imports
+- No background processing (blocks during import)
+
+#### Performance Limitations
+
+**1. No Query Caching**
+- Frequent queries hit database every time
+- No Redis or in-memory cache
+- Repeated searches not optimized
+
+**2. Regex Performance**
+- Regex queries can be slow on large datasets
+- No full-text search indexes
+- Leading wildcard searches not optimized
+
+**3. No Connection Pooling Optimization**
+- Default MongoDB connection pool settings
+- No read preference optimization
+- No query timeout configuration
+
+#### UI/UX Limitations
+
+**1. No Advanced Filtering**
+- Cannot filter by date ranges
+- No multi-select filters
+- No saved searches
+- No filter presets
+
+**2. No Contact Organization**
+- No tags or labels
+- No contact groups
+- No favorites/starred contacts
+- No custom categories
+
+**3. No Bulk Operations**
+- Cannot bulk edit contacts
+- Cannot bulk export selected contacts
+- Only bulk delete all (no selective bulk delete)
+
+**4. No Contact Relationships**
+- Cannot link related contacts
+- No company hierarchy
+- No team/department grouping
+
+**5. Limited Export Options**
+- No CSV export
+- No VCF (vCard) export
+- Cannot export filtered results
+
+#### Integration Limitations
+
+**1. No External Integrations**
+- Cannot import from Google Contacts
+- Cannot import from Outlook/Exchange
+- Cannot sync with CRM systems
+- No API webhooks for external systems
+
+**2. No Contact Enrichment**
+- No automatic data enrichment from public sources
+- No LinkedIn integration
+- No company data lookup
+- No email verification
+
+#### Security & Privacy Limitations
+
+**1. No Audit Logging**
+- Cannot track who accessed which contacts
+- No change history
+- No deletion audit trail
+
+**2. No Data Encryption**
+- Contact data not encrypted at rest
+- No field-level encryption for sensitive data
+
+**3. No Sharing Controls**
+- Cannot share contacts with other users
+- No team workspaces
+- No permission levels
+
+#### Scalability Limitations
+
+**1. Single Database Instance**
+- No sharding
+- No read replicas
+- No geographic distribution
+
+**2. No Background Job Processing**
+- CSV imports block request
+- No job queue for long-running operations
+- No retry mechanism for failed operations
+
+**3. No Rate Limiting**
+- No per-user rate limits
+- No throttling for expensive operations
+- Potential for abuse
+
+#### Data Quality Limitations
+
+**1. No Deduplication**
+- Duplicate contacts can exist
+- No merge functionality
+- No duplicate detection during import
+
+**2. No Data Normalization**
+- Phone numbers stored as-is (no formatting)
+- Company names not normalized
+- No standardized fields
+
+**3. No Data Validation Rules**
+- Cannot enforce required fields
+- No custom validation rules
+- No data quality scoring
 
 ---
 
