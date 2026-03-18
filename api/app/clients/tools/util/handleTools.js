@@ -36,6 +36,7 @@ const {
   TraversaalSearch,
   StructuredWolfram,
   TavilySearchResults,
+  ContactSearch,
   createGeminiImageTool,
   createOpenAIImageTools,
 } = require('../');
@@ -182,6 +183,7 @@ const loadTools = async ({
     'azure-ai-search': StructuredACS,
     traversaal_search: TraversaalSearch,
     tavily_search_results_json: TavilySearchResults,
+    contact_search: ContactSearch,
   };
 
   const customConstructors = {

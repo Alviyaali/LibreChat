@@ -26,12 +26,6 @@ export interface IUser extends Document {
     used: boolean;
     usedAt?: Date | null;
   }>;
-  pendingTotpSecret?: string;
-  pendingBackupCodes?: Array<{
-    codeHash: string;
-    used: boolean;
-    usedAt?: Date | null;
-  }>;
   refreshToken?: Array<{
     refreshToken: string;
   }>;

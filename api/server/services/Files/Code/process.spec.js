@@ -58,7 +58,6 @@ jest.mock('@librechat/agents', () => ({
 jest.mock('@librechat/api', () => ({
   logAxiosError: jest.fn(),
   getBasePath: jest.fn(() => ''),
-  sanitizeFilename: jest.fn((name) => name),
 }));
 
 // Mock models

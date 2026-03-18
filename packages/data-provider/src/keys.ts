@@ -64,6 +64,9 @@ export enum QueryKeys {
   activeJobs = 'activeJobs',
   /* Agent API Keys */
   agentApiKeys = 'agentApiKeys',
+  /* Contacts */
+  contacts = 'contacts',
+  contact = 'contact',
 }
 
 // Dynamic query keys that require parameters
@@ -96,4 +99,10 @@ export enum MutationKeys {
   enableTwoFactor = 'enableTwoFactor',
   verifyTwoFactor = 'verifyTwoFactor',
   updateMemoryPreferences = 'updateMemoryPreferences',
+  /* Contacts */
+  createContact = 'createContact',
+  updateContact = 'updateContact',
+  deleteContact = 'deleteContact',
+  uploadContacts = 'uploadContacts',
+  deleteAllContacts = 'deleteAllContacts',
 }

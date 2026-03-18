@@ -425,29 +425,28 @@ export type TLoginResponse = {
   tempToken?: string;
 };
 
-/** Shared payload for any operation that requires OTP or backup-code verification. */
-export type TOTPVerificationPayload = {
-  token?: string;
-  backupCode?: string;
-};
-
-export type TEnable2FARequest = TOTPVerificationPayload;
-
 export type TEnable2FAResponse = {
   otpauthUrl: string;
   backupCodes: string[];
   message?: string;
 };
 
-export type TVerify2FARequest = TOTPVerificationPayload;
+export type TVerify2FARequest = {
+  token?: string;
+  backupCode?: string;
+};
 
 export type TVerify2FAResponse = {
   message: string;
 };
 
-/** For verifying 2FA during login with a temporary token. */
-export type TVerify2FATempRequest = TOTPVerificationPayload & {
+/**
+ * For verifying 2FA during login with a temporary token.
+ */
+export type TVerify2FATempRequest = {
   tempToken: string;
+  token?: string;
+  backupCode?: string;
 };
 
 export type TVerify2FATempResponse = {
@@ -456,21 +455,29 @@ export type TVerify2FATempResponse = {
   message?: string;
 };
 
-export type TDisable2FARequest = TOTPVerificationPayload;
+/**
+ * Request for disabling 2FA.
+ */
+export type TDisable2FARequest = {
+  token?: string;
+  backupCode?: string;
+};
 
+/**
+ * Response from disabling 2FA.
+ */
 export type TDisable2FAResponse = {
   message: string;
 };
 
-export type TRegenerateBackupCodesRequest = TOTPVerificationPayload;
-
+/**
+ * Response from regenerating backup codes.
+ */
 export type TRegenerateBackupCodesResponse = {
-  message?: string;
+  message: string;
   backupCodes: string[];
-  backupCodesHash: TBackupCode[];
+  backupCodesHash: string[];
 };
-
-export type TDeleteUserRequest = TOTPVerificationPayload;
 
 export type TRequestPasswordReset = {
   email: string;

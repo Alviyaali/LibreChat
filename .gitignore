@@ -101,6 +101,7 @@ config.local.ts
 junit.xml
 **/.venv/
 **/venv/
+.kiro
 
 # docker override file
 docker-compose.override.yaml

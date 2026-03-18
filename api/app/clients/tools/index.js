@@ -12,6 +12,7 @@ const TraversaalSearch = require('./structured/TraversaalSearch');
 const createOpenAIImageTools = require('./structured/OpenAIImageTools');
 const TavilySearchResults = require('./structured/TavilySearchResults');
 const createGeminiImageTool = require('./structured/GeminiImageGen');
+const  ContactSearch = require('./structured/ContactSearch');
 
 module.exports = {
   ...manifest,
@@ -21,6 +22,7 @@ module.exports = {
   OpenWeather,
   StructuredSD,
   StructuredACS,
+  ContactSearch,
   GoogleSearchAPI,
   TraversaalSearch,
   StructuredWolfram,

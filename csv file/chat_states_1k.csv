@@ -1,0 +1,9 @@
+id,chat_id,state_id,lead_id,message_id,kyc_successful,income_verified_aa,application_no,loan_no,application_status,pincode,first_name,middle_name,last_name,mobile,email,pan,gender,dob,state,city,company_name,designation,latitude,longitude
+68ff0665670f61601f7f35fb,1000321546,route_user,265642509,,,,,,LEAD-INCOME,302015,Maanas,,Pillay,1000321546,maanas.pillay.1000321546@example.com,NAYPK4824T,,,Rajasthan,Jaipur,,,,
+6892e8a4fe32c1b8a13a8338,1000141512,route_user,264558570,,,,,,LEAD-NEW,226002,Zehaan,,Khare,1000141512,zehaan.khare.1000141512@example.com,SFHPX8488F,,,Uttar Pradesh,Lucknow,,,,
+68f61207670f61601f63cb90,1000987128,route_user,265551852,,,,,,LEAD-INCOME,522616,Vivaan,,Biswas,1000987128,vivaan.biswas.1000987128@example.com,TOCPE2021O,MALE,19-09-1992,Andhra Pradesh,Guntur,,,,
+692df7fbd8a2c270731cac37,1000476951,route_user,266267164,,,,,,LEAD-INCOME,421002,Lila,,Shan,1000476951,lila.shan.1000476951@example.com,MUYPB6567U,FEMALE,10-04-1986,Maharashtra,Thane,,,,
+68acadbfc2788f6f50302f45,1000215821,route_user,264898398,,,,,,LEAD-INCOME,110080,Yatin,,Narayan,1000215821,yatin.narayan.1000215821@example.com,NPNPA4982V,,,Delhi,South Delhi,,,,
+696ce768dfd08057ba052fa6,1000687005,ask_pincode,267077972,wamid.HBgMOTE4ODI2NzgwOTc3FQIAEhggQTUyQTgxQTcyN0VERDU1RDkyRUYzQjg1MzNCNkZGOTAA,,,,,LEAD-NEW,110004,Oscar,,Andra,1000687005,oscar.andra.1000687005@example.com,ICNPS5896K,,,Delhi,Central Delhi,,,,
+69462e09d8a2c270736195be,1000546356,route_user,266553730,,,,,,LEAD-INCOME,600041,Bhanumati,,Dada,1000546356,bhanumati.dada.1000546356@example.com,UGMPV3970E,MALE,28-02-2003,Tamil Nadu,Kanchipuram,,,,
+68a9fc08c2788f6f502ff721,1000202300,route_user,264862330,,,,,,LEAD-NEW,302016,Nilima,,Vaidya,1000202300,nilima.vaidya.1000202300@example.com,SBNPT4980U,,,Rajasthan,Jaipur,,,,

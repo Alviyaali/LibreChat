@@ -6,7 +6,6 @@ import { isMCPDomainAllowed, extractMCPServerDomain } from '~/auth/domain';
 import { MCPConnectionFactory } from '~/mcp/MCPConnectionFactory';
 import { MCPDomainNotAllowedError } from '~/mcp/errors';
 import { detectOAuthRequirement } from '~/mcp/oauth';
-import { hasCustomUserVars } from '~/mcp/utils';
 import { isEnabled } from '~/utils';
 
 /**
@@ -20,7 +19,6 @@ export class MCPServerInspector {
     private readonly config: t.ParsedServerConfig,
     private connection: MCPConnection | undefined,
     private readonly useSSRFProtection: boolean = false,
-    private readonly allowedDomains?: string[] | null,
   ) {}
 
   /**
@@ -47,13 +45,7 @@ export class MCPServerInspector {
 
     const useSSRFProtection = !Array.isArray(allowedDomains) || allowedDomains.length === 0;
     const start = Date.now();
-    const inspector = new MCPServerInspector(
-      serverName,
-      rawConfig,
-      connection,
-      useSSRFProtection,
-      allowedDomains,
-    );
+    const inspector = new MCPServerInspector(serverName, rawConfig, connection, useSSRFProtection);
     await inspector.inspectServer();
     inspector.config.initDuration = Date.now() - start;
     return inspector.config;
@@ -62,11 +54,7 @@ export class MCPServerInspector {
   private async inspectServer(): Promise<void> {
     await this.detectOAuth();
 
-    if (
-      this.config.startup !== false &&
-      !this.config.requiresOAuth &&
-      !hasCustomUserVars(this.config)
-    ) {
+    if (this.config.startup !== false && !this.config.requiresOAuth) {
       let tempConnection = false;
       if (!this.connection) {
         tempConnection = true;
@@ -75,7 +63,6 @@ export class MCPServerInspector {
           serverName: this.serverName,
           dbSourced: !!this.config.dbId,
           useSSRFProtection: this.useSSRFProtection,
-          allowedDomains: this.allowedDomains,
         });
       }
 

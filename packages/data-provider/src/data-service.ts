@@ -6,12 +6,14 @@ import * as ag from './types/agents';
 import * as m from './types/mutations';
 import * as q from './types/queries';
 import * as f from './types/files';
+import * as ct from './types/contacts';
 import * as mcp from './types/mcpServers';
 import * as config from './config';
 import request from './request';
 import * as s from './schemas';
 import * as r from './roles';
 import * as permissions from './accessPermissions';
+import exp from 'constants';
 
 export function revokeUserKey(name: string): Promise<unknown> {
   return request.delete(endpoints.revokeUserKey(name));
@@ -21,8 +23,8 @@ export function revokeAllUserKeys(): Promise<unknown> {
   return request.delete(endpoints.revokeAllUserKeys());
 }
 
-export function deleteUser(payload?: t.TDeleteUserRequest): Promise<unknown> {
-  return request.deleteWithOptions(endpoints.deleteUser(), { data: payload });
+export function deleteUser(): Promise<s.TPreset> {
+  return request.delete(endpoints.deleteUser());
 }
 
 export type FavoriteItem = {
@@ -970,8 +972,8 @@ export function updateFeedback(
 }
 
 // 2FA
-export function enableTwoFactor(payload?: t.TEnable2FARequest): Promise<t.TEnable2FAResponse> {
-  return request.post(endpoints.enableTwoFactor(), payload);
+export function enableTwoFactor(): Promise<t.TEnable2FAResponse> {
+  return request.get(endpoints.enableTwoFactor());
 }
 
 export function verifyTwoFactor(payload: t.TVerify2FARequest): Promise<t.TVerify2FAResponse> {
@@ -986,10 +988,8 @@ export function disableTwoFactor(payload?: t.TDisable2FARequest): Promise<t.TDis
   return request.post(endpoints.disableTwoFactor(), payload);
 }
 
-export function regenerateBackupCodes(
-  payload?: t.TRegenerateBackupCodesRequest,
-): Promise<t.TRegenerateBackupCodesResponse> {
-  return request.post(endpoints.regenerateBackupCodes(), payload);
+export function regenerateBackupCodes(): Promise<t.TRegenerateBackupCodesResponse> {
+  return request.post(endpoints.regenerateBackupCodes());
 }
 
 export function verifyTwoFactorTemp(
@@ -1085,3 +1085,46 @@ export interface ActiveJobsResponse {
 export const getActiveJobs = (): Promise<ActiveJobsResponse> => {
   return request.get(endpoints.activeJobs());
 };
+
+/* Contacts */
+export function listContacts(params?: ct.ContactListParams): Promise<ct.ContactListResponse> {
+  return request.get(endpoints.contacts(params as Record<string, unknown>));
+}
+
+export function getContactById(id: string): Promise<ct.TContact> {
+  return request.get(endpoints.contactById(id));
+}
+
+export function createContact(payload: ct.CreateContactPayload): Promise<ct.TContact> {
+  return request.post(endpoints.contacts(), payload);
+}
+
+export function updateContact({ id, data}: ct.UpdateContactPayload): Promise<ct.TContact>{
+  return request.patch(endpoints.contactById(id), data);
+}
+
+export function deleteContact(id: string): Promise<void> {
+  return request.delete(endpoints.contactById(id));
+}
+
+export function deleteAllContacts(): Promise<ct.DeleteAllContactsResponse> {
+  return request.delete(endpoints.contactsDeleteAll());
+}
+
+export function uploadContactsCsv(
+  formData: FormData,
+  options?: ct.uploadContactsOptions,
+): Promise<{ count: number }> {
+  return request.postMultiPart(endpoints.contactUpload(), formData,{
+    onUploadProgress: options?.onUploadProgress
+    ? (event) => {
+      const percent = 
+      event.total != null && event.total > 0
+        ? Math.round((event.loaded * 100) / event.total)
+        : 0;
+
+      options?.onUploadProgress?.(percent);
+    }
+  : undefined
+  });
+  }

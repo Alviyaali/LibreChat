@@ -1,0 +1,259 @@
+Fullstack Intern Assignment
+
+Feature: Contact Workspace Integration for LibreChat
+
+Overview
+
+LibreChat already provides a chat interface powered by LLMs. The goal of this assignment is to extend the system by adding a Contacts feature that the assistant can reference during normal conversations.
+
+Instead of building a chat system, you will build a structured contacts workspace and integrate it so that the Al assistant can answer questions about the stored contacts during regular chat interactions.
+
+This assignment evaluates your ability to design a feature that integrates structured application data with an Al assistant within an existing codebase.
+
+Core Objective
+
+Implement a Contacts system and make it accessible to the assistant during normal chat.
+
+Users should be able to store contacts and then ask the assistant questions about them.
+
+Example Workflow
+
+User creates contacts in the application.
+
+Example contact:
+
+Name: John Doe
+
+Company: Acme Corp
+
+Role: CTO
+
+Email: john@acme.com
+
+Notes: Interested in Al infrastructure
+
+Industry: Al Infrastructure
+
+Location: San Francisco
+
+Later in chat, the user asks:
+
+Who works at Acme Corp?
+
+The assistant should respond using the stored contact information.
+
+Example response:
+
+John Doe works at Acme Corp as CTO.
+
+Other possible queries:
+
+What do we know about John Doe?
+
+List all contacts that work at Stripe.
+
+Who are the CTOs in our contacts?
+
+Which contacts are interested in Al infrastructure?
+
+Requirements
+
+1. Contacts Data Model
+
+Design and implement a contact model.
+
+Contacts should support core fields such as:
+
+id
+
+name
+
+company
+
+role
+
+email
+
+notes
+
+created_at
+
+In addition to these fields, contacts must support arbitrary attributes that are not strictly defined in the database schema.
+
+Examples of arbitrary attributes:
+
+Industry
+
+Location
+
+Funding Stage
+
+Interests
+
+Tags
+
+Any other key-value metadata
+
+Your system should allow contacts to be tagged or extended with these attributes and ensure they can still be used by the assistant when answering queries.
+
+2. Contact Importing (Mandatory)
+
+The system must support importing contacts in bulk.
+
+Contacts should be imported from CSV files.
+
+We will provide three CSV datasets for testing:
+
+1,000 contacts
+
+10,000 contacts
+
+1,000,000 contacts
+
+These datasets contain randomly generated contacts with a mix of structured fields and arbitrary attributes.
+
+The links to these CSV files will be provided with the assignment.
+
+Your system should be able to ingest these datasets and store the contacts appropriately.
+
+You do not need to optimize specifically for 1 million contacts, but the system should be designed in a way that can reasonably handle large datasets.
+
+3. Contacts UI
+
+Create a simple UI for managing contacts.
+
+The UI should allow users to:
+
+View contacts
+
+Create contacts
+
+View contact details
+
+View arbitrary attributes attached to contacts
+
+A simple sidebar or panel is sufficient.
+
+4. Chat Integration
+
+LibreChat already provides a chat interface.
+
+Your task is to integrate contacts so the assistant can answer questions about them during normal chat.
+
+Example user queries:
+
+Who works at Stripe?
+
+What do we know about Sarah Chen?
+
+List all contacts in our system.
+
+Which contacts are interested in Al infrastructure?
+
+Your system should provide relevant contact information to the model so that it can generate accurate responses.
+
+There is no single correct implementation approach.
+
+Possible Approaches
+
+Some possible ways to implement this include:
+
+Prompt context injection
+
+Retrieval of relevant contacts before sending the prompt
+
+LLM tool/function calling
+
+Other designs you believe are appropriate
+
+You are encouraged to explain your design decisions.
+
+Al Provider
+
+You will be provided with:
+
+An API key for the Google provider configured in LibreChat
+
+Links to the CSV datasets
+
+These will allow you to test your integration with the assistant.
+
+Bonus Features (Optional)
+
+These are not required, but may earn extra credit:
+
+Contact search
+
+Contact editing and deletion
+
+Contact tagging
+
+Ability to click a contact and ask the assistant about them
+
+Improved UI for browsing large contact lists
+
+Additional Challenge (Extra Credit)
+
+A naive implementation may send all contacts to the Al model whenever the user asks a question.
+
+For extra credit, design your system so the model only receives contacts that are relevant to the user's query.
+
+Example:
+
+User query
+
+Who works at Acme Corp?
+
+Instead of sending all contacts to the model, the system should attempt to send only contacts related to Acme Corp.
+
+Design Questions (Include in README)
+
+Please include short answers to the following questions in your README.
+
+1. If the system needed to support 1,000,000 contacts, how would you redesign it?
+
+2. How would you ensure the assistant retrieves the most relevant contacts for a query?
+
+3. What are the limitations of your current implementation?
+
+Implementation Notes (Important)
+
+You are extending an existing LibreChat codebase.
+
+Please follow the conventions and architecture already present in the project where possible.
+
+During the review process, we may ask follow-up questions about your design decisions and implementation details. Please ensure your code and README clearly explain your reasoning.
+
+Deliverables
+
+Submit a GitHub repository containing:
+
+Your implementation changes
+
+A README with setup instructions
+
+A short architecture explanation
+
+Answers to the design questions
+
+Expected Time Commitment
+
+The assignment should take approximately: 6-10 hours
+
+You may take up to 3-4 days to complete it.
+
+If you need an extension, feel free to reachout with a reason for the extension.
+
+Note for Candidates
+
+Please prioritize clarity and thoughtful design over feature completeness.
+
+We are more interested in your engineering decisions than in implementing every possible feature.
+
+DOWNLOADS:
+
+- https://storage.googleapis.com/assignment-input-files-serri/chat_states_1k.csv
+
+- https://storage.googleapis.com/assignment-input-files-serri/chat_states_10k.csv
+
+- https://storage.googleapis.com/assignment-input-files-serri/chat_states_1M.csvA

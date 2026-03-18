@@ -76,62 +76,52 @@ router.get('/chat/stream/:streamId', async (req, res) => {
 
   logger.debug(`[AgentStream] Client subscribed to ${streamId}, resume: ${isResume}`);
 
-  const writeEvent = (event) => {
-    if (!res.writableEnded) {
-      res.write(`event: message\ndata: ${JSON.stringify(event)}\n\n`);
-      if (typeof res.flush === 'function') {
-        res.flush();
-      }
-    }
-  };
-
-  const onDone = (event) => {
-    writeEvent(event);
-    res.end();
-  };
-
-  const onError = (error) => {
-    if (!res.writableEnded) {
-      res.write(`event: error\ndata: ${JSON.stringify({ error })}\n\n`);
-      if (typeof res.flush === 'function') {
-        res.flush();
-      }
-      res.end();
-    }
-  };
-
-  let result;
-
+  // Send sync event with resume state for ALL reconnecting clients
+  // This supports multi-tab scenarios where each tab needs run step data
   if (isResume) {
-    const { subscription, resumeState, pendingEvents } =
-      await GenerationJobManager.subscribeWithResume(streamId, writeEvent, onDone, onError);
+    const resumeState = await GenerationJobManager.getResumeState(streamId);
+    if (resumeState && !res.writableEnded) {
+      // Send sync event with run steps AND aggregatedContent
+      // Client will use aggregatedContent to initialize message state
+      res.write(`event: message\ndata: ${JSON.stringify({ sync: true, resumeState })}\n\n`);
+      if (typeof res.flush === 'function') {
+        res.flush();
+      }
+      logger.debug(
+        `[AgentStream] Sent sync event for ${streamId} with ${resumeState.runSteps.length} run steps`,
+      );
+    }
+  }
 
-    if (!res.writableEnded) {
-      if (resumeState) {
-        res.write(
-          `event: message\ndata: ${JSON.stringify({ sync: true, resumeState, pendingEvents })}\n\n`,
-        );
+  const result = await GenerationJobManager.subscribe(
+    streamId,
+    (event) => {
+      if (!res.writableEnded) {
+        res.write(`event: message\ndata: ${JSON.stringify(event)}\n\n`);
         if (typeof res.flush === 'function') {
           res.flush();
         }
-        GenerationJobManager.markSyncSent(streamId);
-        logger.debug(
-          `[AgentStream] Sent sync event for ${streamId} with ${resumeState.runSteps.length} run steps, ${pendingEvents.length} pending events`,
-        );
-      } else if (pendingEvents.length > 0) {
-        for (const event of pendingEvents) {
-          writeEvent(event);
-        }
-        logger.warn(
-          `[AgentStream] Resume state null for ${streamId}, replayed ${pendingEvents.length} gap events directly`,
-        );
       }
-    }
-
-    result = subscription;
-  } else {
-    result = await GenerationJobManager.subscribe(streamId, writeEvent, onDone, onError);
-  }
+    },
+    (event) => {
+      if (!res.writableEnded) {
+        res.write(`event: message\ndata: ${JSON.stringify(event)}\n\n`);
+        if (typeof res.flush === 'function') {
+          res.flush();
+        }
+        res.end();
+      }
+    },
+    (error) => {
+      if (!res.writableEnded) {
+        res.write(`event: error\ndata: ${JSON.stringify({ error })}\n\n`);
+        if (typeof res.flush === 'function') {
+          res.flush();
+        }
+        res.end();
+      }
+    },
+  );
 
   if (!result) {
     return res.status(404).json({ error: 'Failed to subscribe to stream' });

@@ -404,8 +404,8 @@ router.put('/:conversationId/:messageId/feedback', validateMessageReq, async (re
 
 router.delete('/:conversationId/:messageId', validateMessageReq, async (req, res) => {
   try {
-    const { conversationId, messageId } = req.params;
-    await deleteMessages({ messageId, conversationId, user: req.user.id });
+    const { messageId } = req.params;
+    await deleteMessages({ messageId });
     res.status(204).send();
   } catch (error) {
     logger.error('Error deleting message:', error);

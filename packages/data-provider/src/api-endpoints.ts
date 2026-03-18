@@ -1,6 +1,7 @@
 import type { AssistantsEndpoint } from './schemas';
 import * as q from './types/queries';
 import { ResourceType } from './accessPermissions';
+import { encode } from 'punycode';
 
 let BASE_URL = '';
 if (
@@ -438,3 +439,11 @@ export const getAllEffectivePermissions = (resourceType: ResourceType) =>
 // SharePoint Graph API Token
 export const graphToken = (scopes: string) =>
   `${BASE_URL}/api/auth/graph-token?scopes=${encodeURIComponent(scopes)}`;
+
+/* Contacts */
+const contactsRoot = `${BASE_URL}/api/contacts`; //contactsRoot is the base url for contacts
+export const contacts = (params?: Record<string, unknown>) =>
+  `${contactsRoot}${params ? buildQuery(params) : ''}`;
+export const contactById = (id: string) => `${contactsRoot}/${encodeURIComponent(id)}`;
+export const contactUpload = () => `${contactsRoot}/upload`;
+export const contactsDeleteAll = () => contactsRoot;

@@ -31,3 +31,5 @@ export * from './group';
 export * from './web';
 /* MCP Servers */
 export * from './mcp';
+/* Contacts */
+export * from './contact';

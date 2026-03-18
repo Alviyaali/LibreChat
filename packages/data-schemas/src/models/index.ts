@@ -27,7 +27,7 @@ import { createMemoryModel } from './memory';
 import { createAccessRoleModel } from './accessRole';
 import { createAclEntryModel } from './aclEntry';
 import { createGroupModel } from './group';
-
+import { createContactModel } from './contact';
 /**
  * Creates all database models for all collections
  */
@@ -37,6 +37,7 @@ export function createModels(mongoose: typeof import('mongoose')) {
     Token: createTokenModel(mongoose),
     Session: createSessionModel(mongoose),
     Balance: createBalanceModel(mongoose),
+    Contact: createContactModel(mongoose), // support contact
     Conversation: createConversationModel(mongoose),
     Message: createMessageModel(mongoose),
     Agent: createAgentModel(mongoose),

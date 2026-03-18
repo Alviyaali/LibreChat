@@ -30,7 +30,6 @@ export class MCPConnectionFactory {
   protected readonly logPrefix: string;
   protected readonly useOAuth: boolean;
   protected readonly useSSRFProtection: boolean;
-  protected readonly allowedDomains?: string[] | null;
 
   // OAuth-related properties (only set when useOAuth is true)
   protected readonly userId?: string;
@@ -198,7 +197,6 @@ export class MCPConnectionFactory {
     this.serverName = basic.serverName;
     this.useOAuth = !!oauth?.useOAuth;
     this.useSSRFProtection = basic.useSSRFProtection === true;
-    this.allowedDomains = basic.allowedDomains;
     this.connectionTimeout = oauth?.connectionTimeout;
     this.logPrefix = oauth?.user
       ? `[MCP][${basic.serverName}][${oauth.user.id}]`
@@ -287,8 +285,6 @@ export class MCPConnectionFactory {
       serverName: string;
       identifier: string;
       clientInfo?: OAuthClientInformation;
-      storedTokenEndpoint?: string;
-      storedAuthMethods?: string[];
     },
   ) => Promise<MCPOAuthTokens> {
     return async (refreshToken, metadata) => {
@@ -298,12 +294,9 @@ export class MCPConnectionFactory {
           serverUrl: (this.serverConfig as t.SSEOptions | t.StreamableHTTPOptions).url,
           serverName: metadata.serverName,
           clientInfo: metadata.clientInfo,
-          storedTokenEndpoint: metadata.storedTokenEndpoint,
-          storedAuthMethods: metadata.storedAuthMethods,
         },
         this.serverConfig.oauth_headers ?? {},
         this.serverConfig.oauth,
-        this.allowedDomains,
       );
     };
   }
@@ -347,7 +340,6 @@ export class MCPConnectionFactory {
             this.userId!,
             config?.oauth_headers ?? {},
             config?.oauth,
-            this.allowedDomains,
           );
 
           if (existingFlow) {
@@ -611,7 +603,6 @@ export class MCPConnectionFactory {
         this.userId!,
         this.serverConfig.oauth_headers ?? {},
         this.serverConfig.oauth,
-        this.allowedDomains,
       );
 
       // Store flow state BEFORE redirecting so the callback can find it

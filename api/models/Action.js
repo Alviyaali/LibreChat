@@ -4,7 +4,9 @@ const { Action } = require('~/db/models');
  * Update an action with new data without overwriting existing properties,
  * or create a new action if it doesn't exist.
  *
- * @param {{ action_id: string, agent_id?: string, assistant_id?: string, user?: string }} searchParams
+ * @param {Object} searchParams - The search parameters to find the action to update.
+ * @param {string} searchParams.action_id - The ID of the action to update.
+ * @param {string} searchParams.user - The user ID of the action's author.
  * @param {Object} updateData - An object containing the properties to update.
  * @returns {Promise<Action>} The updated or newly created action document as a plain object.
  */
@@ -45,8 +47,10 @@ const getActions = async (searchParams, includeSensitive = false) => {
 /**
  * Deletes an action by params.
  *
- * @param {{ action_id: string, agent_id?: string, assistant_id?: string, user?: string }} searchParams
- * @returns {Promise<Action|null>} The deleted action document as a plain object, or null if no match.
+ * @param {Object} searchParams - The search parameters to find the action to delete.
+ * @param {string} searchParams.action_id - The ID of the action to delete.
+ * @param {string} searchParams.user - The user ID of the action's author.
+ * @returns {Promise<Action>} A promise that resolves to the deleted action document as a plain object, or null if no document was found.
  */
 const deleteAction = async (searchParams) => {
   return await Action.findOneAndDelete(searchParams).lean();
