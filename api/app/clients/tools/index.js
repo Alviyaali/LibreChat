@@ -13,6 +13,7 @@ const createOpenAIImageTools = require('./structured/OpenAIImageTools');
 const TavilySearchResults = require('./structured/TavilySearchResults');
 const createGeminiImageTool = require('./structured/GeminiImageGen');
 const  ContactSearch = require('./structured/ContactSearch');
+const ContactAnalytics = require('./structured/ContactAnalytics');
 
 module.exports = {
   ...manifest,
@@ -23,6 +24,7 @@ module.exports = {
   StructuredSD,
   StructuredACS,
   ContactSearch,
+  ContactAnalytics,
   GoogleSearchAPI,
   TraversaalSearch,
   StructuredWolfram,

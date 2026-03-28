@@ -37,6 +37,7 @@ const {
   StructuredWolfram,
   TavilySearchResults,
   ContactSearch,
+  ContactAnalytics,
   createGeminiImageTool,
   createOpenAIImageTools,
 } = require('../');
@@ -184,6 +185,7 @@ const loadTools = async ({
     traversaal_search: TraversaalSearch,
     tavily_search_results_json: TavilySearchResults,
     contact_search: ContactSearch,
+    contact_analytics: ContactAnalytics,
   };
 
   const customConstructors = {

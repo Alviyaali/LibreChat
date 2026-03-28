@@ -170,8 +170,16 @@
   {
     "name": "Contact Search",
     "pluginKey": "contact_search",
-    "description": "Search the internal contacts database for people by name, company, role, or industry. Use this when user ask about employees, companies, or organizational contacts.",
+    "description": "Search the internal contacts database for people by name, company, role, email. phone. gender, city, state, pincode, application status, PAN, DOB, or any metadata field. Returns matching cantact details.",
     "icon": "/assets/Contact Search Tool.svg",
     "authConfig": []
+  },
+  {
+    "name": "Contact Analytics",
+    "pluginKey": "contact_analytics",
+    "description": "Get counts, totals, and statistical breakdowns of contacts. Use for questions like how many contacts, gender breakdown, contacts per city, application status distribution.",
+    "icon": "/assets/Contact Search Tool.svg",
+    "authConfig": []
+
   }
 ]

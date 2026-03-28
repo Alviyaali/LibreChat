@@ -354,6 +354,74 @@ export const fileSearchSchema: ExtendedJsonSchema = {
   required: ['query'],
 };
 
+/** Contact Search tool JSON schema */
+export const contactSearchSchema: ExtendedJsonSchema = {
+  type: 'object',
+  properties: {
+    name: { type: 'string', description: 'The person name to search for (partial or full match).' },
+    companyName: { type: 'string', description: 'The company name to search for (partial or full match).' },
+    role: { type: 'string', description: 'The job title, role, or designation to search for (partial or full match).' },
+    email: { type: 'string', description: 'The email address to search for (partial or full match).' },
+    phone: { type: 'string', description: 'The phone number or mobile number to search for.' },
+    gender: { type: 'string', description: 'Filter by gender (e.g. "MALE", "FEMALE").' },
+    city: { type: 'string', description: 'Filter by city name.' },
+    state: { type: 'string', description: 'Filter by state or region name.' },
+    pincode: { type: 'string', description: 'Filter by pincode / zip code.' },
+    applicationStatus: { type: 'string', description: 'Filter by application status (e.g. "LEAD-NEW", "LEAD-INCOME").' },
+    pan: { type: 'string', description: 'Filter by PAN number.' },
+    dob: { type: 'string', description: 'Filter by date of birth (e.g. "19-09-1992").' },
+    chatId: { type: 'string', description: 'Filter by chat_id.' },
+    leadId: { type: 'string', description: 'Filter by lead_id.' },
+    stateId: { type: 'string', description: 'Filter by state_id.' },
+    kycSuccessful: { type: 'string', description: 'Filter by KYC success status.' },
+    incomeVerifiedAa: { type: 'string', description: 'Filter by income verification status.' },
+    applicationNo: { type: 'string', description: 'Filter by application number.' },
+    loanNo: { type: 'string', description: 'Filter by loan number.' },
+    industry: { type: 'string', description: 'Filter by industry.' },
+    metadataField: { type: 'string', description: 'Name of any metadata field not listed above. Must be used together with metadataValue.' },
+    metadataValue: { type: 'string', description: 'Value to match for the metadata field specified in metadataField.' },
+  },
+  required: [],
+};
+
+/** Contact Analytics tool JSON schema */
+export const contactAnalyticsSchema: ExtendedJsonSchema = {
+  type: 'object',
+  properties: {
+    groupBy: {
+      type: 'string',
+      description:'Field name to group/aggregate contacts by. Examples: "gender", "city", "state", "application_status", "pincode", "company", "role", "kyc_successful", "income_verified_aa", "dob". The result will show each distinct value and its count.',
+    },
+    countOnly: {
+      type: 'boolean',
+      description:'When true, returns only the total count of matching contacts without grouping. Useful for questions like "how many contacts are there?" or "how many contacts are male?"',
+    },
+    name: { type: 'string', description: 'Filter by person name (partial match).' },
+    companyName: { type: 'string', description: 'Filter by company name (partial match).' },
+    role: { type: 'string', description: 'Filter by job title or role (partial match).' },
+    email: { type: 'string', description: 'Filter by email address (partial match).' },
+    phone: { type: 'string', description: 'Filter by phone number.' },
+    gender: { type: 'string', description: 'Filter by gender (e.g. "MALE", "FEMALE").' },
+    city: { type: 'string', description: 'Filter by city name.' },
+    state: { type: 'string', description: 'Filter by state or region name.' },
+    pincode: { type: 'string', description: 'Filter by pincode / zip code.' },
+    applicationStatus: { type: 'string', description: 'Filter by application status (e.g. "LEAD-NEW", "LEAD-INCOME").' },
+    pan: { type: 'string', description: 'Filter by PAN number.' },
+    dob: { type: 'string', description: 'Filter by date of birth (e.g. "19-09-1992").' },
+    chatId: { type: 'string', description: 'Filter by chat_id.' },
+    leadId: { type: 'string', description: 'Filter by lead_id.' },
+    stateId: { type: 'string', description: 'Filter by state_id (workflow state identifier).' },
+    kycSuccessful: { type: 'string', description: 'Filter by KYC success status.' },
+    incomeVerifiedAa: { type: 'string', description: 'Filter by income verification via Account Aggregator.' },
+    applicationNo: { type: 'string', description: 'Filter by application number.' },
+    loanNo: { type: 'string', description: 'Filter by loan number.' },
+    industry: { type: 'string', description: 'Filter by industry.' },
+    metadataField: { type: 'string', description: 'Name of any metadata field not listed above. Must be used with metadataValue.' },
+    metadataValue: { type: 'string', description: 'Value to match for the field specified in metadataField.' },
+  },
+  required: [],
+};
+
 /** Tool definitions registry - maps tool names to their definitions */
 export const toolDefinitions: Record<string, ToolRegistryDefinition> = {
   google: {
@@ -449,7 +517,40 @@ export const toolDefinitions: Record<string, ToolRegistryDefinition> = {
     toolType: 'builtin',
     responseFormat: geminiToolkit.gemini_image_gen.responseFormat,
   },
+
+  contact_search: {
+    name: 'contact_search',
+    description:
+      'Search the internal contacts database for people. ' +
+      'Searchable fields: name, company, role, email, phone, gender, city, state, pincode, ' +
+      'applicationStatus (e.g. LEAD-NEW, LEAD-INCOME), pan, dob, chatId, leadId, stateId, ' +
+      'kycSuccessful, incomeVerifiedAa, applicationNo, loanNo, industry. ' +
+      'Use metadataField + metadataValue for any other metadata key. ' +
+      'All parameters are optional and combined with AND logic. ' +
+      'Returns up to 50 matching contacts with their full details. ' +
+      'For counting or statistical questions (how many, breakdown by, distribution), ' +
+      'use the contact_analytics tool instead.',
+    schema: contactSearchSchema,
+    toolType: 'builtin',
+  },
+
+  contact_analytics: {
+    name: 'contact_analytics',
+    description:
+      'Get counts, totals, and statistical breakdowns of contacts. ' +
+      'Use this tool for quantitative questions: "how many contacts?", ' +
+      '"how many are male/female?", "breakdown by city", "contacts per state", ' +
+      '"application status distribution", "how many LEAD-NEW?". ' +
+      'Set countOnly=true for simple totals. Set groupBy to a field name for breakdowns. ' +
+      'All filter parameters (name, company, gender, city, state, pincode, applicationStatus, ' +
+      'pan, dob, chatId, leadId, kycSuccessful, incomeVerifiedAa, applicationNo, loanNo, etc.) ' +
+      'can be combined with groupBy or countOnly to narrow the scope. ' +
+      'For looking up specific contact details, use the contact_search tool instead.',
+    schema: contactAnalyticsSchema,
+    toolType: 'builtin',
+  },
 };
+
 
 /** Tool definitions from @librechat/agents */
 const agentToolDefinitions: Record<string, ToolRegistryDefinition> = {
